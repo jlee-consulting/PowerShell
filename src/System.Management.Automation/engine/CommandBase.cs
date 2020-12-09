@@ -76,7 +76,7 @@ namespace System.Management.Automation.Internal
         /// <value>The invocation object for this command.</value>
         internal InvocationInfo MyInvocation
         {
-            get { return _myInvocation ?? (_myInvocation = new InvocationInfo(this)); }
+            get { return _myInvocation ??= new InvocationInfo(this); }
         }
 
         /// <summary>
@@ -470,7 +470,7 @@ namespace System.Management.Automation
             {
                 using (PSTransactionManager.GetEngineProtectionScope())
                 {
-                    return _invokeProvider ?? (_invokeProvider = new ProviderIntrinsics(this));
+                    return _invokeProvider ??= new ProviderIntrinsics(this);
                 }
             }
         }
@@ -543,7 +543,6 @@ namespace System.Management.Automation
         }
 
         /// <Content contentref="System.Management.Automation.VariableIntrinsics.GetValue" />
-
         public object GetVariableValue(string name, object defaultValue)
         {
             using (PSTransactionManager.GetEngineProtectionScope())
@@ -561,4 +560,3 @@ namespace System.Management.Automation
         #endregion public_methods
     }
 }
-

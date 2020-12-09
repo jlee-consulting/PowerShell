@@ -55,11 +55,11 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
                 }
             }
 
-            public string PropertyName { get; private set; }
+            public string PropertyName { get; }
 
-            public object PropertyValue { get; private set; }
+            public object PropertyValue { get; }
 
-            public Func<string, string, string> ErrorMessageGenerator { get; private set; }
+            public Func<string, string, string> ErrorMessageGenerator { get; }
 
             private static string GetErrorMessageForNotFound(string queryDescription, string className)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
 
         private abstract class CimInstancePropertyBasedFilter : CimInstanceFilterBase
         {
-            private readonly List<PropertyValueFilter> _propertyValueFilters = new List<PropertyValueFilter>();
+            private readonly List<PropertyValueFilter> _propertyValueFilters = new();
 
             protected IEnumerable<PropertyValueFilter> PropertyValueFilters { get { return _propertyValueFilters; } }
 
@@ -405,7 +405,7 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
 
             private object ConvertActualValueToExpectedType(object actualPropertyValue, object expectedPropertyValue)
             {
-                if ((actualPropertyValue is string) && (!(expectedPropertyValue is string)))
+                if (actualPropertyValue is string && expectedPropertyValue is not string)
                 {
                     actualPropertyValue = LanguagePrimitives.ConvertTo(actualPropertyValue, expectedPropertyValue.GetType(), CultureInfo.InvariantCulture);
                 }
@@ -572,8 +572,7 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
             {
                 try
                 {
-                    var expectedComparable = expectedPropertyValue as IComparable;
-                    if (expectedComparable == null)
+                    if (!(expectedPropertyValue is IComparable expectedComparable))
                     {
                         return false;
                     }
@@ -608,8 +607,7 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
             {
                 try
                 {
-                    var actualComparable = actualPropertyValue as IComparable;
-                    if (actualComparable == null)
+                    if (!(actualPropertyValue is IComparable actualComparable))
                     {
                         return false;
                     }
@@ -626,8 +624,8 @@ namespace Microsoft.PowerShell.Cmdletization.Cim
         private int _numberOfResultsFromMi;
         private int _numberOfMatchingResults;
 
-        private readonly List<CimInstanceFilterBase> _filters = new List<CimInstanceFilterBase>();
-        private readonly object _myLock = new object();
+        private readonly List<CimInstanceFilterBase> _filters = new();
+        private readonly object _myLock = new();
 
         #region "Public" interface for client-side filtering
 

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+
 // ----------------------------------------------------------------------
 //  Contents:  Entry points for managed PowerShell plugin worker used to
 //  host powershell in a WSMan service.
@@ -169,7 +170,7 @@ namespace System.Management.Automation.Remoting
         #region Private Members
 
         // Holds the delegate pointers in a structure that has identical layout to the native structure.
-        private WSManPluginEntryDelegatesInternal _unmanagedStruct = new WSManPluginEntryDelegatesInternal();
+        private readonly WSManPluginEntryDelegatesInternal _unmanagedStruct = new WSManPluginEntryDelegatesInternal();
 
         internal WSManPluginEntryDelegatesInternal UnmanagedStruct
         {
@@ -233,11 +234,7 @@ namespace System.Management.Automation.Remoting
         }
 
         /// <summary>
-        /// Use C# destructor syntax for finalization code.
-        /// This destructor will run only if the Dispose method
-        /// does not get called.
-        /// It gives your base class the opportunity to finalize.
-        /// Do not provide destructors in types derived from this class.
+        /// Finalizes an instance of the <see cref="WSManPluginEntryDelegates"/> class.
         /// </summary>
         ~WSManPluginEntryDelegates()
         {
@@ -318,7 +315,7 @@ namespace System.Management.Automation.Remoting
         private void CleanUpDelegates()
         {
             // Free GCHandles so that the memory they point to may be unpinned (garbage collected)
-            if (_pluginShellGCHandle != null)
+            if (_pluginShellGCHandle.IsAllocated)
             {
                 _pluginShellGCHandle.Free();
                 _pluginReleaseShellContextGCHandle.Free();
@@ -432,7 +429,7 @@ namespace System.Management.Automation.Remoting
         public static int InitPlugin(
             IntPtr wkrPtrs)
         {
-            if (IntPtr.Zero == wkrPtrs)
+            if (wkrPtrs == IntPtr.Zero)
             {
                 return WSManPluginConstants.ExitCodeFailure;
             }
@@ -472,7 +469,7 @@ namespace System.Management.Automation.Remoting
             IntPtr commandContext,
             IntPtr inboundConnectInformation)
         {
-            if (IntPtr.Zero == pluginContext)
+            if (pluginContext == IntPtr.Zero)
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -504,7 +501,7 @@ namespace System.Management.Automation.Remoting
             IntPtr startupInfo,
             IntPtr inboundShellInformation)
         {
-            if (IntPtr.Zero == pluginContext)
+            if (pluginContext == IntPtr.Zero)
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -560,7 +557,7 @@ namespace System.Management.Automation.Remoting
             [MarshalAs(UnmanagedType.LPWStr)] string commandLine,
             IntPtr arguments)
         {
-            if (IntPtr.Zero == pluginContext)
+            if (pluginContext == IntPtr.Zero)
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -621,7 +618,7 @@ namespace System.Management.Automation.Remoting
             [MarshalAs(UnmanagedType.LPWStr)] string stream,
             IntPtr inboundData)
         {
-            if (IntPtr.Zero == pluginContext)
+            if (pluginContext == IntPtr.Zero)
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -653,7 +650,7 @@ namespace System.Management.Automation.Remoting
             IntPtr commandContext,
             IntPtr streamSet)
         {
-            if (IntPtr.Zero == pluginContext)
+            if (pluginContext == IntPtr.Zero)
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -685,7 +682,7 @@ namespace System.Management.Automation.Remoting
             IntPtr commandContext,
             [MarshalAs(UnmanagedType.LPWStr)] string code)
         {
-            if ((IntPtr.Zero == pluginContext) || (IntPtr.Zero == shellContext))
+            if ((pluginContext == IntPtr.Zero) || (shellContext == IntPtr.Zero))
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -765,11 +762,7 @@ namespace System.Management.Automation.Remoting
         }
 
         /// <summary>
-        /// Use C# destructor syntax for finalization code.
-        /// This destructor will run only if the Dispose method
-        /// does not get called.
-        /// It gives your base class the opportunity to finalize.
-        /// Do not provide destructors in types derived from this class.
+        /// Finalizes an instance of the <see cref="WSManPluginManagedEntryInstanceWrapper"/> class.
         /// </summary>
         ~WSManPluginManagedEntryInstanceWrapper()
         {

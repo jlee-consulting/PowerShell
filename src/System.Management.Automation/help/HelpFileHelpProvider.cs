@@ -268,7 +268,7 @@ namespace System.Management.Automation
             }
         }
 
-        private void GetModuleNameAndVersion(string psmodulePathRoot, string filePath, out string moduleName, out Version moduleVersion)
+        private static void GetModuleNameAndVersion(string psmodulePathRoot, string filePath, out string moduleName, out Version moduleVersion)
         {
             moduleVersion = null;
             moduleName = null;
@@ -415,9 +415,8 @@ namespace System.Management.Automation
         ///
         /// This will avoid one help file getting loaded again and again.
         /// </summary>
-        private Hashtable _helpFiles = new Hashtable();
+        private readonly Hashtable _helpFiles = new Hashtable();
 
         #endregion
     }
 }
-

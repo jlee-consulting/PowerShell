@@ -16,7 +16,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
     /// </summary>
     internal sealed class FormatObjectDeserializer
     {
-        internal TerminatingErrorContext TerminatingErrorContext { get; private set; }
+        internal TerminatingErrorContext TerminatingErrorContext { get; }
 
         /// <summary>
         /// Expansion of TAB character to the following string.
@@ -55,9 +55,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return false;
             }
 
-            string classId = GetProperty(so, FormatInfoData.classidProperty) as string;
-
-            if (classId == null)
+            if (!(GetProperty(so, FormatInfoData.classidProperty) is string classId))
             {
                 // it's not one of the objects derived from FormatInfoData
                 return false;
@@ -113,9 +111,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return so;
             }
 
-            string classId = GetProperty(so, FormatInfoData.classidProperty) as string;
-
-            if (classId == null)
+            if (!(GetProperty(so, FormatInfoData.classidProperty) is string classId))
             {
                 // it's not one of the objects derived from FormatInfoData,
                 // just return it as is
@@ -294,7 +290,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         internal bool DeserializeBoolMemberVariable(PSObject so, string property, bool cannotBeNull = true)
         {
             var val = DeserializeMemberVariable(so, property, typeof(bool), cannotBeNull);
-            return (val == null) ? false : (bool)val;
+            return val != null && (bool)val;
         }
 
         internal WriteStreamType DeserializeWriteStreamTypeMemberVariable(PSObject so)
@@ -706,4 +702,3 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
     }
     #endregion
 }
-

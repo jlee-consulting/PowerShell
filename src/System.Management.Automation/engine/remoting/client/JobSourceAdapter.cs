@@ -238,7 +238,7 @@ namespace System.Management.Automation
         /// </summary>
         public List<CommandParameterCollection> Parameters
         {
-            get { return _parameters ?? (_parameters = new List<CommandParameterCollection>()); }
+            get { return _parameters ??= new List<CommandParameterCollection>(); }
         }
 
         /// <summary>
@@ -415,8 +415,7 @@ namespace System.Management.Automation
                 duplicateDetector.Add(job.InstanceId, job.InstanceId);
                 foreach (Job child in job.ChildJobs)
                 {
-                    Job2 childJob = child as Job2;
-                    if (childJob == null) continue;
+                    if (!(child is Job2 childJob)) continue;
                     StoreJobIdForReuseHelper(duplicateDetector, childJob, true);
                 }
             }
@@ -432,8 +431,7 @@ namespace System.Management.Automation
             if (!recurse || job.ChildJobs == null) return;
             foreach (Job child in job.ChildJobs)
             {
-                Job2 childJob = child as Job2;
-                if (childJob == null) continue;
+                if (!(child is Job2 childJob)) continue;
                 StoreJobIdForReuseHelper(duplicateDetector, childJob, recurse);
             }
         }

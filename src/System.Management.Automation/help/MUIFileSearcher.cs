@@ -86,7 +86,7 @@ namespace System.Management.Automation
         /// _uniqueMatches is used to track matches already found during the search process.
         /// This is useful for ignoring duplicates in the case of unique search.
         /// </summary>
-        private Hashtable _uniqueMatches = new Hashtable(StringComparer.OrdinalIgnoreCase);
+        private readonly Hashtable _uniqueMatches = new Hashtable(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Search for files using the target, searchPaths member of this class.
@@ -113,7 +113,7 @@ namespace System.Management.Automation
             }
         }
 
-        private string[] GetFiles(string path, string pattern)
+        private static string[] GetFiles(string path, string pattern)
         {
 #if UNIX
             // On Linux, file names are case sensitive, so we need to add
@@ -372,4 +372,3 @@ namespace System.Management.Automation
         Unique
     }
 }
-

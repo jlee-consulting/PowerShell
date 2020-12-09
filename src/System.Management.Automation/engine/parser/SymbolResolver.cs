@@ -30,6 +30,7 @@ namespace System.Management.Automation.Language
         }
 
         public TypeDefinitionAst Type { get; set; }
+
         public List<string> ExternalNamespaces { get; set; }
 
         public bool IsAmbiguous()
@@ -353,7 +354,7 @@ namespace System.Management.Automation.Language
 
         public override AstVisitAction VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
-            if (!(functionDefinitionAst.Parent is FunctionMemberAst))
+            if (functionDefinitionAst.Parent is not FunctionMemberAst)
             {
                 _symbolTable.EnterScope(functionDefinitionAst.Body, ScopeType.Function);
             }
@@ -736,7 +737,7 @@ namespace System.Management.Automation.Language
 
         public override object VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
-            if (!(functionDefinitionAst.Parent is FunctionMemberAst))
+            if (functionDefinitionAst.Parent is not FunctionMemberAst)
             {
                 _symbolResolver._symbolTable.LeaveScope();
             }

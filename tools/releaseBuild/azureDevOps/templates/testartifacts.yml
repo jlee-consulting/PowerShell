@@ -1,9 +1,14 @@
 jobs:
 - job: build_testartifacts
+  variables:
+    runCodesignValidationInjection: false
   displayName: Build test artifacts
   condition: succeeded()
   pool: 'Hosted Ubuntu 1604'
   steps:
+  - checkout: self
+    clean: true
+
 
   - pwsh: |
       Import-Module ./build.psm1

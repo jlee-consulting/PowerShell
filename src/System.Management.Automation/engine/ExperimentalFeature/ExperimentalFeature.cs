@@ -115,14 +115,17 @@ namespace System.Management.Automation
                     description: "Provide unix permission information for files and directories"),
 #endif
                 new ExperimentalFeature(
-                    name: "PSNullConditionalOperators",
-                    description: "Support the null conditional member access operators in PowerShell language"),
-                new ExperimentalFeature(
                     name: "PSCultureInvariantReplaceOperator",
                     description: "Use culture invariant to-string convertor for lval in replace operator"),
                 new ExperimentalFeature(
                     name: "PSNativePSPathResolution",
                     description: "Convert PSPath to filesystem path, if possible, for native commands"),
+                new ExperimentalFeature(
+                    name: "PSNotApplyErrorActionToStderr",
+                    description: "Don't have $ErrorActionPreference affect stderr output"),
+                new ExperimentalFeature(
+                    name: "PSSubsystemPluginModel",
+                    description: "A plugin model for registering and un-registering PowerShell subsystems"),
             };
             EngineExperimentalFeatures = new ReadOnlyCollection<ExperimentalFeature>(engineFeatures);
 
@@ -342,20 +345,21 @@ namespace System.Management.Automation
         {
             if (string.IsNullOrEmpty(experimentName))
             {
-                string paramName = nameof(experimentName);
+                const string paramName = nameof(experimentName);
                 throw PSTraceSource.NewArgumentNullException(paramName, Metadata.ArgumentNullOrEmpty, paramName);
             }
 
             if (experimentAction == ExperimentAction.None)
             {
-                string paramName = nameof(experimentAction);
-                string invalidMember = nameof(ExperimentAction.None);
+                const string paramName = nameof(experimentAction);
+                const string invalidMember = nameof(ExperimentAction.None);
                 string validMembers = StringUtil.Format("{0}, {1}", ExperimentAction.Hide, ExperimentAction.Show);
                 throw PSTraceSource.NewArgumentException(paramName, Metadata.InvalidEnumArgument, invalidMember, paramName, validMembers);
             }
         }
 
         internal bool ToHide => EffectiveAction == ExperimentAction.Hide;
+
         internal bool ToShow => EffectiveAction == ExperimentAction.Show;
 
         /// <summary>

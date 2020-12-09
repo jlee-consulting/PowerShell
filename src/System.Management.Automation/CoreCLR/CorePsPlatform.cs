@@ -155,20 +155,20 @@ namespace System.Management.Automation
 #endif
 
         // format files
-        internal static readonly List<string> FormatFileNames = new List<string>
-            {
-                "Certificate.format.ps1xml",
-                "Diagnostics.format.ps1xml",
-                "DotNetTypes.format.ps1xml",
-                "Event.format.ps1xml",
-                "FileSystem.format.ps1xml",
-                "Help.format.ps1xml",
-                "HelpV3.format.ps1xml",
-                "PowerShellCore.format.ps1xml",
-                "PowerShellTrace.format.ps1xml",
-                "Registry.format.ps1xml",
-                "WSMan.format.ps1xml"
-            };
+        internal static readonly List<string> FormatFileNames = new()
+        {
+            "Certificate.format.ps1xml",
+            "Diagnostics.format.ps1xml",
+            "DotNetTypes.format.ps1xml",
+            "Event.format.ps1xml",
+            "FileSystem.format.ps1xml",
+            "Help.format.ps1xml",
+            "HelpV3.format.ps1xml",
+            "PowerShellCore.format.ps1xml",
+            "PowerShellTrace.format.ps1xml",
+            "Registry.format.ps1xml",
+            "WSMan.format.ps1xml"
+        };
 
         /// <summary>
         /// Some common environment variables used in PS have different
@@ -566,8 +566,8 @@ namespace System.Management.Automation
         /// <summary>Unix specific implementations of required functionality.</summary>
         internal static class Unix
         {
-            private static Dictionary<int, string> usernameCache = new Dictionary<int, string>();
-            private static Dictionary<int, string> groupnameCache = new Dictionary<int, string>();
+            private static Dictionary<int, string> usernameCache = new();
+            private static Dictionary<int, string> groupnameCache = new();
 
             /// <summary>The type of a Unix file system item.</summary>
             public enum ItemType
@@ -699,7 +699,7 @@ namespace System.Management.Automation
                 private const char CanExecute = 'x';
 
                 // helper for getting unix mode
-                private Dictionary<StatMask, char> modeMap = new Dictionary<StatMask, char>()
+                private Dictionary<StatMask, char> modeMap = new()
                 {
                         { StatMask.OwnerRead, CanRead },
                         { StatMask.OwnerWrite, CanWrite },
@@ -726,7 +726,7 @@ namespace System.Management.Automation
                 };
 
                 // The item type and the character representation for the first element in the stat string
-                private Dictionary<ItemType, char> itemTypeTable = new Dictionary<ItemType, char>()
+                private Dictionary<ItemType, char> itemTypeTable = new()
                 {
                     { ItemType.BlockDevice, 'b' },
                     { ItemType.CharacterDevice, 'c' },
@@ -860,7 +860,7 @@ namespace System.Management.Automation
             /// <returns>A managed common stat class instance.</returns>
             private static CommonStat CopyStatStruct(NativeMethods.CommonStatStruct css)
             {
-                CommonStat cs = new CommonStat();
+                CommonStat cs = new();
                 cs.Inode = css.Inode;
                 cs.Mode = css.Mode;
                 cs.UserId = css.UserId;
@@ -1008,11 +1008,11 @@ namespace System.Management.Automation
                 internal static extern int GetPPid(int pid);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
-                internal static extern int GetLinkCount([MarshalAs(UnmanagedType.LPStr)]string filePath, out int linkCount);
+                internal static extern int GetLinkCount([MarshalAs(UnmanagedType.LPStr)] string filePath, out int linkCount);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
                 [return: MarshalAs(UnmanagedType.I1)]
-                internal static extern bool IsExecutable([MarshalAs(UnmanagedType.LPStr)]string filePath);
+                internal static extern bool IsExecutable([MarshalAs(UnmanagedType.LPStr)] string filePath);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi)]
                 internal static extern uint GetCurrentThreadId();
@@ -1069,16 +1069,16 @@ namespace System.Management.Automation
                 internal static extern unsafe int SetDate(UnixTm* tm);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
-                internal static extern int CreateSymLink([MarshalAs(UnmanagedType.LPStr)]string filePath,
-                                                         [MarshalAs(UnmanagedType.LPStr)]string target);
+                internal static extern int CreateSymLink([MarshalAs(UnmanagedType.LPStr)] string filePath,
+                                                         [MarshalAs(UnmanagedType.LPStr)] string target);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
-                internal static extern int CreateHardLink([MarshalAs(UnmanagedType.LPStr)]string filePath,
-                                                          [MarshalAs(UnmanagedType.LPStr)]string target);
+                internal static extern int CreateHardLink([MarshalAs(UnmanagedType.LPStr)] string filePath,
+                                                          [MarshalAs(UnmanagedType.LPStr)] string target);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
                 [return: MarshalAs(UnmanagedType.LPStr)]
-                internal static extern string FollowSymLink([MarshalAs(UnmanagedType.LPStr)]string filePath);
+                internal static extern string FollowSymLink([MarshalAs(UnmanagedType.LPStr)] string filePath);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
                 [return: MarshalAs(UnmanagedType.LPStr)]
@@ -1086,11 +1086,11 @@ namespace System.Management.Automation
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
                 [return: MarshalAs(UnmanagedType.I1)]
-                internal static extern bool IsSameFileSystemItem([MarshalAs(UnmanagedType.LPStr)]string filePathOne,
-                                                                 [MarshalAs(UnmanagedType.LPStr)]string filePathTwo);
+                internal static extern bool IsSameFileSystemItem([MarshalAs(UnmanagedType.LPStr)] string filePathOne,
+                                                                 [MarshalAs(UnmanagedType.LPStr)] string filePathTwo);
 
                 [DllImport(psLib, CharSet = CharSet.Ansi, SetLastError = true)]
-                internal static extern int GetInodeData([MarshalAs(UnmanagedType.LPStr)]string path,
+                internal static extern int GetInodeData([MarshalAs(UnmanagedType.LPStr)] string path,
                                                         out UInt64 device, out UInt64 inode);
 
                 /// <summary>
@@ -1159,10 +1159,10 @@ namespace System.Management.Automation
                     /// <summary>This filesystem item is a socket.</summary>
                     internal int IsSocket;
 
-                    /// <summary>This filesystem item will run as the the owner if executed.</summary>
+                    /// <summary>This filesystem item will run as the owner if executed.</summary>
                     internal int IsSetUid;
 
-                    /// <summary>This filesystem item will run as the the group if executed.</summary>
+                    /// <summary>This filesystem item will run as the group if executed.</summary>
                     internal int IsSetGid;
 
                     /// <summary>Whether the sticky bit is set on the filesystem item.</summary>

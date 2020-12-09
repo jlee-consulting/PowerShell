@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+
 #pragma warning disable 1634, 1691
 
 using System.Collections;
@@ -91,8 +92,8 @@ namespace System.Management.Automation
 
         internal PipelineProcessor PipelineProcessor { get; set; }
 
-        private CommandInfo _commandInfo;
-        private InternalCommand _thisCommand;
+        private readonly CommandInfo _commandInfo;
+        private readonly InternalCommand _thisCommand;
 
         #endregion private_members
 
@@ -124,7 +125,7 @@ namespace System.Management.Automation
         /// <value>The invocation object for this command.</value>
         internal InvocationInfo MyInvocation
         {
-            get { return _myInvocation ?? (_myInvocation = _thisCommand.MyInvocation); }
+            get { return _myInvocation ??= _thisCommand.MyInvocation; }
         }
 
         /// <summary>
@@ -352,7 +353,7 @@ namespace System.Management.Automation
             // WriteProgress. The following logic ensures that
             // there is a unique id for each Cmdlet instance.
 
-            if (0 == _sourceId)
+            if (_sourceId == 0)
             {
                 _sourceId = Interlocked.Increment(ref s_lastUsedSourceId);
             }
@@ -953,7 +954,7 @@ namespace System.Management.Automation
 
                 _outVarList = oldValue ?? new ArrayList();
 
-                if (!(_thisCommand is PSScriptCmdlet))
+                if (_thisCommand is not PSScriptCmdlet)
                 {
                     this.OutputPipe.AddVariableList(VariableStreamKind.Output, _outVarList);
                 }
@@ -989,7 +990,7 @@ namespace System.Management.Automation
             // same scope.
             _pipelineVarReference = _state.PSVariable.Get(this.PipelineVariable);
 
-            if (!(_thisCommand is PSScriptCmdlet))
+            if (_thisCommand is not PSScriptCmdlet)
             {
                 this.OutputPipe.SetPipelineVariable(_pipelineVarReference);
             }
@@ -1734,8 +1735,13 @@ namespace System.Management.Automation
         {
             bool yesToAll = false;
             bool noToAll = false;
-            bool hasSecurityImpact = false;
-            return DoShouldContinue(query, caption, hasSecurityImpact, false, ref yesToAll, ref noToAll);
+            return DoShouldContinue(
+                query,
+                caption,
+                hasSecurityImpact: false,
+                supportsToAllOptions: false,
+                ref yesToAll,
+                ref noToAll);
         }
 
         /// <summary>
@@ -2205,7 +2211,7 @@ namespace System.Management.Automation
         /// </summary>
         internal Pipe InputPipe
         {
-            get { return _inputPipe ?? (_inputPipe = new Pipe()); }
+            get { return _inputPipe ??= new Pipe(); }
 
             set { _inputPipe = value; }
         }
@@ -2215,7 +2221,7 @@ namespace System.Management.Automation
         /// </summary>
         internal Pipe OutputPipe
         {
-            get { return _outputPipe ?? (_outputPipe = new Pipe()); }
+            get { return _outputPipe ??= new Pipe(); }
 
             set { _outputPipe = value; }
         }
@@ -2238,7 +2244,7 @@ namespace System.Management.Automation
         /// </summary>
         internal Pipe ErrorOutputPipe
         {
-            get { return _errorOutputPipe ?? (_errorOutputPipe = new Pipe()); }
+            get { return _errorOutputPipe ??= new Pipe(); }
 
             set { _errorOutputPipe = value; }
         }
@@ -2320,8 +2326,7 @@ namespace System.Management.Automation
             {
                 if (permittedToWrite == null)
                     throw PSTraceSource.NewArgumentNullException(nameof(permittedToWrite));
-                MshCommandRuntime mcr = permittedToWrite.commandRuntime as MshCommandRuntime;
-                if (mcr == null)
+                if (!(permittedToWrite.commandRuntime is MshCommandRuntime mcr))
                     throw PSTraceSource.NewArgumentNullException("permittedToWrite.CommandRuntime");
                 _pp = mcr.PipelineProcessor;
                 if (_pp == null)
@@ -2351,10 +2356,10 @@ namespace System.Management.Automation
             // There is no finalizer, by design.  This class relies on always
             // being disposed and always following stack semantics.
 
-            private PipelineProcessor _pp = null;
-            private InternalCommand _wasPermittedToWrite = null;
-            private bool _wasPermittedToWriteToPipeline = false;
-            private Thread _wasPermittedToWriteThread = null;
+            private readonly PipelineProcessor _pp = null;
+            private readonly InternalCommand _wasPermittedToWrite = null;
+            private readonly bool _wasPermittedToWriteToPipeline = false;
+            private readonly Thread _wasPermittedToWriteThread = null;
         }
 
         /// <summary>
@@ -2383,7 +2388,10 @@ namespace System.Management.Automation
             // PipelineStoppedException should not get added to $Error
             // 2008/06/25 - narrieta: ExistNestedPromptException should not be added to $error either
             // 2019/10/18 - StopUpstreamCommandsException should not be added either
-            if (!(e is HaltCommandException) && !(e is PipelineStoppedException) && !(e is ExitNestedPromptException) && !(e is StopUpstreamCommandsException))
+            if (e is not HaltCommandException
+                && e is not PipelineStoppedException
+                && e is not ExitNestedPromptException
+                && e is not StopUpstreamCommandsException)
             {
                 try
                 {
@@ -2574,7 +2582,7 @@ namespace System.Management.Automation
                 varList = new ArrayList();
             }
 
-            if (!(_thisCommand is PSScriptCmdlet))
+            if (_thisCommand is not PSScriptCmdlet)
             {
                 this.OutputPipe.AddVariableList(streamKind, varList);
             }
@@ -2825,66 +2833,68 @@ namespace System.Management.Automation
                     Severity.Warning);
             }
 
-            this.PipelineProcessor.ExecutionFailed = true;
             if (LogPipelineExecutionDetail)
             {
                 this.PipelineProcessor.LogExecutionError(_thisCommand.MyInvocation, errorRecord);
             }
 
-            ActionPreference preference = ErrorAction;
-            if (actionPreference.HasValue)
+            if (!(ExperimentalFeature.IsEnabled("PSNotApplyErrorActionToStderr") && isNativeError))
             {
-                preference = actionPreference.Value;
-            }
+                this.PipelineProcessor.ExecutionFailed = true;
 
-            // No trace of the error in the 'Ignore' case
-            if (ActionPreference.Ignore == preference)
-            {
-                return; // do not write or record to output pipe
-            }
+                ActionPreference preference = ErrorAction;
+                if (actionPreference.HasValue)
+                {
+                    preference = actionPreference.Value;
+                }
 
-            // 2004/05/26-JonN
-            // The object is not written in the SilentlyContinue case
-            if (ActionPreference.SilentlyContinue == preference)
-            {
+                // No trace of the error in the 'Ignore' case
+                if (preference == ActionPreference.Ignore)
+                {
+                    return; // do not write or record to output pipe
+                }
+
+                // 2004/05/26-JonN
+                // The object is not written in the SilentlyContinue case
+                if (preference == ActionPreference.SilentlyContinue)
+                {
+                    AppendErrorToVariables(errorRecord);
+                    return; // do not write to output pipe
+                }
+
+                if (lastErrorContinueStatus == ContinueStatus.YesToAll)
+                {
+                    preference = ActionPreference.Continue;
+                }
+
+                switch (preference)
+                {
+                    case ActionPreference.Stop:
+                        ActionPreferenceStopException e =
+                            new ActionPreferenceStopException(
+                                MyInvocation,
+                                errorRecord,
+                                StringUtil.Format(CommandBaseStrings.ErrorPreferenceStop,
+                                                "ErrorActionPreference",
+                                                errorRecord.ToString()));
+                        throw ManageException(e);
+
+                    case ActionPreference.Inquire:
+                        // ignore return value
+                        // this will throw if the user chooses not to continue
+                        lastErrorContinueStatus = InquireHelper(
+                            RuntimeException.RetrieveMessage(errorRecord),
+                            null,
+                            true,  // allowYesToAll
+                            false, // allowNoToAll
+                            true,  // replaceNoWithHalt
+                            false  // hasSecurityImpact
+                        );
+                        break;
+                }
+
                 AppendErrorToVariables(errorRecord);
-                return; // do not write to output pipe
             }
-
-            if (ContinueStatus.YesToAll == lastErrorContinueStatus)
-            {
-                preference = ActionPreference.Continue;
-            }
-
-            switch (preference)
-            {
-                case ActionPreference.Stop:
-                    ActionPreferenceStopException e =
-                        new ActionPreferenceStopException(
-                            MyInvocation,
-                            errorRecord,
-                            StringUtil.Format(CommandBaseStrings.ErrorPreferenceStop,
-                                              "ErrorActionPreference",
-                                              errorRecord.ToString()));
-                    throw ManageException(e);
-
-                case ActionPreference.Inquire:
-                    // ignore return value
-                    // this will throw if the user chooses not to continue
-                    lastErrorContinueStatus = InquireHelper(
-                        RuntimeException.RetrieveMessage(errorRecord),
-                        null,
-                        true,  // allowYesToAll
-                        false, // allowNoToAll
-                        true,  // replaceNoWithHalt
-                        false  // hasSecurityImpact
-                    );
-                    break;
-            }
-
-            // 2005/01/20 Do not write the object to $error if
-            // ManageException has already done so
-            AppendErrorToVariables(errorRecord);
 
             // Add this note property and set its value to true for F&O
             // to decide whether to call WriteErrorLine or WriteLine.
@@ -3021,7 +3031,7 @@ namespace System.Management.Automation
             }
         }
 
-        private bool _isVerbosePreferenceCached = false;
+        private readonly bool _isVerbosePreferenceCached = false;
         private ActionPreference _verbosePreference = InitialSessionState.DefaultVerbosePreference;
         /// <summary>
         /// Preference setting.
@@ -3070,7 +3080,7 @@ namespace System.Management.Automation
 
         internal bool IsWarningActionSet { get; private set; } = false;
 
-        private bool _isWarningPreferenceCached = false;
+        private readonly bool _isWarningPreferenceCached = false;
         private ActionPreference _warningPreference = InitialSessionState.DefaultWarningPreference;
         /// <summary>
         /// Preference setting.
@@ -3379,7 +3389,7 @@ namespace System.Management.Automation
             No,
             YesToAll,
             NoToAll
-        };
+        }
 
         internal ContinueStatus lastShouldProcessContinueStatus = ContinueStatus.Yes;
         internal ContinueStatus lastErrorContinueStatus = ContinueStatus.Yes;
@@ -3679,7 +3689,7 @@ namespace System.Management.Automation
                     CBhost.EnterNestedPrompt(_thisCommand);
                     // continue loop
                 }
-                else if (-1 == response)
+                else if (response == -1)
                 {
                     ActionPreferenceStopException e =
                         new ActionPreferenceStopException(

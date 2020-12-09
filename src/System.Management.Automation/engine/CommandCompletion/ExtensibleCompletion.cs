@@ -24,10 +24,10 @@ namespace System.Management.Automation
     {
         /// <summary/>
         [SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods")]
-        public Type Type { get; private set; }
+        public Type Type { get; }
 
         /// <summary/>
-        public ScriptBlock ScriptBlock { get; private set; }
+        public ScriptBlock ScriptBlock { get; }
 
         /// <param name="type">The type must implement <see cref="IArgumentCompleter"/> and have a default constructor.</param>
         public ArgumentCompleterAttribute(Type type)
@@ -58,6 +58,7 @@ namespace System.Management.Automation
     /// <summary>
     /// A type specified by the <see cref="ArgumentCompleterAttribute"/> must implement this interface.
     /// </summary>
+#nullable enable
     public interface IArgumentCompleter
     {
         /// <summary>
@@ -82,6 +83,7 @@ namespace System.Management.Automation
             CommandAst commandAst,
             IDictionary fakeBoundParameters);
     }
+#nullable restore
 
     /// <summary>
     /// </summary>
@@ -129,7 +131,7 @@ namespace System.Management.Automation
 
             if (CommandName == null || CommandName.Length == 0)
             {
-                CommandName = new[] { "" };
+                CommandName = new[] { string.Empty };
             }
 
             for (int i = 0; i < CommandName.Length; i++)
@@ -164,7 +166,7 @@ namespace System.Management.Automation
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class ArgumentCompletionsAttribute : Attribute
     {
-        private string[] _completions;
+        private readonly string[] _completions;
 
         /// <summary>
         /// Initializes a new instance of the ArgumentCompletionsAttribute class.

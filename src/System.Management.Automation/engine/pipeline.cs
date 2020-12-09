@@ -91,14 +91,6 @@ namespace System.Management.Automation.Internal
             _disposed = true;
         }
 
-        /// <summary>
-        /// Finalizer for class PipelineProcessor.
-        /// </summary>
-        ~PipelineProcessor()
-        {
-            Dispose(false);
-        }
-
         #endregion IDispose
 
         #region Execution Logging
@@ -174,7 +166,7 @@ namespace System.Management.Automation.Internal
             Log(message, null, PipelineExecutionStatus.Error);
         }
 
-        private string GetCommand(InvocationInfo invocationInfo)
+        private static string GetCommand(InvocationInfo invocationInfo)
         {
             if (invocationInfo == null)
                 return string.Empty;
@@ -187,7 +179,7 @@ namespace System.Management.Automation.Internal
             return string.Empty;
         }
 
-        private string GetCommand(Exception exception)
+        private static string GetCommand(Exception exception)
         {
             IContainsErrorRecord icer = exception as IContainsErrorRecord;
             if (icer != null && icer.ErrorRecord != null)
@@ -344,9 +336,9 @@ namespace System.Management.Automation.Internal
                     PipelineStrings.CommandProcessorAlreadyUsed);
             }
 
-            if (0 == _commands.Count)
+            if (_commands.Count == 0)
             {
-                if (0 != readFromCommand)
+                if (readFromCommand != 0)
                 {
                     // "First command cannot have input"
                     throw PSTraceSource.NewArgumentException(
@@ -945,7 +937,7 @@ namespace System.Management.Automation.Internal
             if (_executionStarted)
                 return;
 
-            if (_commands == null || 0 == _commands.Count)
+            if (_commands == null || _commands.Count == 0)
             {
                 throw PSTraceSource.NewInvalidOperationException(
                     PipelineStrings.PipelineExecuteRequiresAtLeastOneCommand);
@@ -1384,7 +1376,7 @@ namespace System.Management.Automation.Internal
             _redirectionPipes = null;
         }
 
-        private object _stopReasonLock = new object();
+        private readonly object _stopReasonLock = new object();
         /// <summary>
         /// Makes an internal note of the exception, but only if this is
         /// the first error.
@@ -1406,8 +1398,8 @@ namespace System.Management.Automation.Internal
                 // Note that the pipeline could have been stopped asynchronously
                 // before hitting the error, therefore we check whether
                 // firstTerminatingError is PipelineStoppedException.
-                else if ((!(_firstTerminatingError.SourceException is PipelineStoppedException))
-                    && command != null && command.Context != null)
+                else if (_firstTerminatingError.SourceException is not PipelineStoppedException
+                    && command?.Context != null)
                 {
                     Exception ex = e;
                     while ((ex is TargetInvocationException || ex is CmdletInvocationException)
@@ -1416,7 +1408,7 @@ namespace System.Management.Automation.Internal
                         ex = ex.InnerException;
                     }
 
-                    if (!(ex is PipelineStoppedException))
+                    if (ex is not PipelineStoppedException)
                     {
                         string message = StringUtil.Format(PipelineStrings.SecondFailure,
                             _firstTerminatingError.GetType().Name,
@@ -1597,4 +1589,3 @@ namespace System.Management.Automation.Internal
         }
     }
 }
-
